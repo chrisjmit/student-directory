@@ -1,13 +1,11 @@
-@students = [] # an empty array accessible to all methods
+require 'csv'
+@students = []
 
 def print_menu
   puts "1. Input the students details"
   puts "2. Show the students record"
-  puts "3. Save the list to students.csv"
-  puts "4. Load the list from students.csv"
-  #puts "3. Use control flow to print"
-  #puts "4. Show list of student by their first initial"
-  #puts "5. Show students with less than 12 letters in their name"
+  puts "3. Save the list"
+  puts "4. Load the list"
   puts "9. Exit"
 end
 
@@ -38,31 +36,32 @@ end
 def input_students
   puts "Please enter the names of the students"
   puts "To finish, just hit return twice"
-  cohort_default = "November"
   name = STDIN.gets.chomp
-    name.empty? ? exit : name
+    name.empty? ? interactive_menu : name
+  puts "What cohort do you belong to?"
+    cohort_default = "November"
+    cohort = STDIN.gets.delete("\n")
+      if cohort.empty?
+        puts "The default cohort is #{cohort_default}."
+        cohort = cohort_default
+      end
+  puts "Please list their hobbies."
+    hobbies = STDIN.gets.delete("\n")
+  puts "What is their country of birth?"
+    country_of_birth = STDIN.gets.delete("\n")
+  puts "What is their height?"
+    height = STDIN.gets.delete("\n")
+
   while !name.empty? do
-    puts "What cohort do you belong to?"
-      cohort = STDIN.gets.delete("\n")
-        if cohort.empty?
-          puts "The default cohort is #{cohort_default}."
-          cohort = cohort_default
-        end
-
-    puts "Please list their hobbies."
-      hobbies = STDIN.gets.delete("\n")
-    puts "What is their country of birth?"
-      country_of_birth = STDIN.gets.delete("\n")
-    puts "What is their height?"
-      height = STDIN.gets.delete("\n")
-
-    @students << {name: name, cohort: cohort.to_sym, hobbies: hobbies, country_of_birth: country_of_birth.to_sym, height: height.to_sym}
-
-    puts @students.count != 1 ? "Now we have #{@students.count} students" : "Now we have 1 student"
-
-    puts "Please add the name of the next student. Leave this entry blank to finish adding students."
-    name = STDIN.gets.chomp
+    append_student(name, cohort, hobbies, country_of_birth, height)
+  puts @students.count != 1 ? "Now we have #{@students.count} students" : "Now we have 1 student"
+  puts "Please add the name of the next student. Leave this entry blank to finish adding students."
+    input_students
   end
+end
+
+def append_student(name, cohort, hobbies, country_of_birth, height)
+  @students << {name: name, cohort: cohort.to_sym, hobbies: hobbies, country_of_birth: country_of_birth, height: height}
 end
 
 def show_students
@@ -82,29 +81,6 @@ def print_students_list
   end
 end
 
-def print_using_control_flow
-  count = 1
-  while count <= @students.length
-  puts "#{count}: #{@students[count-1][:name]} of the #{@students[count-1][:cohort]} cohort"
-    count += 1
-  end
-end
-
-def filter_by_input
-  puts "You can list the students by their first initial. What is the first letter you would like to filter by?"
-    firstletter = STDIN.gets.chomp
-  @students.each_with_index do |student, index|
-    puts "#{index+1}. #{student[:name]} (#{student[:cohort]} cohort)" if student[:name].start_with?(firstletter)
-  end
-end
-
-def filter_by_length_12
-  @students.each_with_index do |student, index|
-    puts "#{index+1}. #{student[:name]} (#{student[:cohort]} cohort)" if student[:name].length < 12
-  end
-end
-
-
 def print_footer
   if @students.count != 1
     puts "Overall, we have #{@students.count} great students".center(100)
@@ -114,35 +90,36 @@ def print_footer
 end
 
 def save_students
- # open the file for writing
- file = File.open("students.csv", "w")
- # iterate over the array of students
- @students.each do |student|
-   student_data = [student[:name], student[:cohort]]
-   csv_line = student_data.join(",")
-   file.puts csv_line
+ puts "Which file would you like to save the records to? Leave blank for students.csv"
+ save_file = STDIN.gets.chomp; save_file = "students.csv" if save_file == ""
+ CSV.open(save_file, "w") do |csv|
+   @students.each do |student|
+     student_data = [student[:name], student[:cohort], student[:hobbies], student[:country_of_birth],student[:height]]
+     csv << student_data
+   end
  end
- file.close
+ puts "Student data saved to #{save_file}."
 end
 
 def load_students(filename = "students.csv")
-  file = File.open(filename, "r")
-  file.readlines.each do |line|
-    name, cohort = line.chomp.split(",")
-    @students << {name: name, cohort: cohort.to_sym}
+  puts "Which user file would you lke to load? Leave blank for students.csv"
+  userfile = STDIN.gets.chomp
+  userfile.empty? ? userfile = "students.csv" : userfile
+  CSV.foreach(userfile, "r") do |student|
+    name, cohort, hobbies, country_of_birth, height = student
+    @students << {name: name, cohort: cohort.to_sym, hobbies: hobbies, country_of_birth: country_of_birth, height: height}
   end
-  file.close
+  puts "Data loaded from #{userfile}."
 end
 
 def try_load_students
-  filename = ARGV.first #first argument from the command line
-  return if filename.nil? #get out of the method if it isn't given
-  if File.exists?(filename) #if it exists
+  filename = ARGV.first
+     load_students("students.csv")
+   elsif File.exists?(filename)
     load_students(filename)
      puts "Loaded #{@students.count} from #{filename}"
-  else # if it doesn't exists
-    puts "Sorry, #{filename} doesn't exist."
-    exit # quit the program
+   else puts "Sorry, #{filename} doesn't exist."
+    exit
   end
 end
 
