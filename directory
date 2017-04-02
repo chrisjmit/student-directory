@@ -1,0 +1,133 @@
+@students = [] # an empty array accessible to all methods
+
+def input_students
+  puts "Please enter the names of the students"
+  puts "To finish, just hit return twice"
+  default = "November"
+  name = gets.chomp
+    name.empty? ? exit : name
+  while !name.empty? do
+    puts "What cohort do you belong to?"
+      cohort = gets.delete("\n")
+        if cohort.empty?
+          puts "The default cohort is #{default}."
+          cohort = default
+        end
+
+    puts "Please list their hobbies."
+      hobbies = gets.delete("\n")
+    puts "What is their country of birth?"
+      country_of_birth = gets.delete("\n")
+    puts "What is their height?"
+      height = gets.delete("\n")
+
+    @students << {name: name, cohort: cohort.to_sym, hobbies: hobbies, country_of_birth: country_of_birth.to_sym, height: height.to_sym}
+
+    puts @students.count != 1 ? "Now we have #{students.count} students" : "Now we have 1 student"
+
+    puts "Please add the name of the next student. Leave this entry blank to finish adding students."
+    name = gets.chomp
+  end
+end
+
+def print_menu
+  puts "1. Input the students details"
+  puts "2. Show the students record"
+  puts "3. Use control flow to print"
+  puts "4. Show list of student by their first initial"
+  puts "5. Show students with less than 12 letters in their name"
+  puts "9. Exit"
+end
+
+def interactive_menu
+  loop do
+    print_menu
+    process(gets.chomp)
+  end
+end
+
+def process(user_select)
+  case user_select
+    when "1"
+      input_students
+    when "2"
+      show_students
+    when "3"
+      print_using_control_flow
+    when "4"
+      filter_by_input
+    when "5"
+      filter_by_length_12
+    when "9"
+      exit
+    else
+      puts "I don't know what you meant, try again."
+  end
+end
+
+
+def show_students
+  print_header
+  print_students_list
+  print_footer
+end
+
+
+def print_header
+puts "The students of Villains Academy".center(100)
+puts "-------------".center(100)
+end
+
+
+def print_students_list
+    @students.each_with_index do |student, index|
+      puts "#{index+1}. #{student[:name]} (#{student[:cohort]} cohort). He is #{student[:height]} tall, was born in #{student[:country_of_birth]}, and has the following hobbies: #{student[:hobbies]})".center(100)
+    end
+end
+
+def print_using_control_flow
+  count = 1
+  while count <= @students.length
+  puts "#{count}: #{@students[count-1][:name]} of the #{@students[count-1][:cohort]} cohort"
+    count += 1
+  end
+end
+
+def filter_by_input
+  puts "You can list the students by their first initial. What is the first letter you would like to filter by?"
+    firstletter = gets.chomp
+  @students.each_with_index do |student, index|
+    puts "#{index+1}. #{student[:name]} (#{student[:cohort]} cohort)" if student[:name].start_with?(firstletter)
+  end
+end
+
+def filter_by_length_12
+  @students.each_with_index do |student, index|
+    puts "#{index+1}. #{student[:name]} (#{student[:cohort]} cohort)" if student[:name].length < 12
+  end
+end
+
+#def print_by_group(students)
+#  students.map do |x|
+#      x[:cohort]
+#    end
+#  puts students
+#end
+
+def print_footer
+  if @students.count != 1
+    puts "Overall, we have #{@students.count} great students".center(100)
+  else
+    puts "Overall, we have #{@students.count} great student".center(100)
+  end
+end
+
+
+interactive_menu
+#print_header
+#print_(students)
+#filter_by_input(students)
+#filter_by_length_12(students)
+#print_using_control_flow(students)
+#print_by_group(students)
+#print_footer(students)
